@@ -36,6 +36,11 @@
     "vite": "^6.2.0",
     "whois-json": "^2.0.4"
   },
+  "overrides": {
+    "react-helmet-async": {
+      "react": "$react"
+    }
+  },
   "devDependencies": {
     "@types/express": "^4.17.21",
     "@types/node": "^22.14.0",
