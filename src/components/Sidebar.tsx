@@ -18,10 +18,10 @@ const Sidebar = () => {
         </h3>
         <div className="space-y-4">
           {[
-            { name: 'Bluehost', deal: '75% OFF + Free Domain', link: '#' },
-            { name: 'Hostinger', deal: 'Up to 80% OFF', link: '#' },
-            { name: 'SiteGround', deal: 'Special 73% Discount', link: '#' },
-            { name: 'Cloudways', deal: '3 Days Free Trial', link: '#' }
+            { name: 'Bluehost', deal: '75% OFF + Free Domain', link: 'https://webseotrends.com/deals/black-friday-web-hosting-deals/' },
+            { name: 'Hostinger', deal: 'Up to 80% OFF', link: 'https://webseotrends.com/deals/black-friday-web-hosting-deals/' },
+            { name: 'SiteGround', deal: 'Special 73% Discount', link: 'https://webseotrends.com/deals/black-friday-web-hosting-deals/' },
+            { name: 'Cloudways', deal: '3 Days Free Trial', link: 'https://webseotrends.com/deals/black-friday-web-hosting-deals/' }
           ].map((host, i) => (
             <div key={i} className="group p-4 rounded-xl border border-slate-50 hover:border-indigo-100 hover:bg-indigo-50/30 transition-all">
               <div className="flex justify-between items-center mb-1">

@@ -4,33 +4,14 @@ import dns from "dns";
 import axios from "axios";
 import whois from "whois-json";
 import RSSParser from "rss-parser";
-import Database from "better-sqlite3";
 import path from "path";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-let db: any;
-try {
-  const dbPath = process.env.NODE_ENV === "production" ? "/tmp/cache.db" : "cache.db";
-  db = new Database(dbPath);
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS lookup_cache (
-      domain TEXT PRIMARY KEY,
-      data TEXT,
-      timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-} catch (e) {
-  console.error("Failed to initialize SQLite, using in-memory cache:", e);
-  db = {
-    prepare: () => ({
-      get: () => null,
-      run: () => {}
-    })
-  };
-}
+// In-memory cache for serverless environments
+const cache = new Map<string, { data: any, timestamp: number }>();
 
 export const app = express();
 const parser = new RSSParser();
@@ -50,13 +31,14 @@ app.get("/api/lookup", async (req, res) => {
     let cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, "").split("/")[0];
 
     // Check cache (1 hour)
-    const cached = db.prepare("SELECT data FROM lookup_cache WHERE domain = ? AND timestamp > datetime('now', '-1 hour')").get(cleanDomain) as { data: string } | undefined;
-    if (cached) {
-      return res.json(JSON.parse(cached.data));
+    const cached = cache.get(cleanDomain);
+    if (cached && Date.now() - cached.timestamp < 3600000) {
+      return res.json(cached.data);
     }
 
+    let results: any = null;
     try {
-      const results: any = { domain: cleanDomain };
+      results = { domain: cleanDomain };
 
       // 1. DNS Lookup
       const resolveDns = (type: any) => new Promise((resolve) => {
@@ -93,12 +75,16 @@ app.get("/api/lookup", async (req, res) => {
         }
       }
 
-      // 3. WHOIS
+      // 3. WHOIS with timeout
       try {
-        const whoisData = await whois(cleanDomain);
+        const whoisPromise = whois(cleanDomain);
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('WHOIS timeout')), 3000)
+        );
+        const whoisData = await Promise.race([whoisPromise, timeoutPromise]) as any;
         results.whois = whoisData && Object.keys(whoisData).length > 0 ? whoisData : null;
-      } catch (e) {
-        console.warn("WHOIS lookup failed:", e.message);
+      } catch (e: any) {
+        console.warn(`WHOIS lookup failed for ${cleanDomain}:`, e.message);
         results.whois = null;
       }
 
@@ -135,12 +121,16 @@ app.get("/api/lookup", async (req, res) => {
       }
 
       // Cache result
-      db.prepare("INSERT OR REPLACE INTO lookup_cache (domain, data, timestamp) VALUES (?, ?, CURRENT_TIMESTAMP)").run(cleanDomain, JSON.stringify(results));
+      cache.set(cleanDomain, { data: results, timestamp: Date.now() });
 
       res.json(results);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "Failed to lookup domain" });
+    } catch (error: any) {
+      console.error(`Lookup error for ${cleanDomain}:`, error);
+      res.status(500).json({ 
+        error: "Failed to lookup domain", 
+        details: error.message,
+        phase: results ? "processing" : "initialization"
+      });
     }
   });
 

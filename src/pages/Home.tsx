@@ -48,7 +48,8 @@ const Home = () => {
       const res = await axios.get(`/api/lookup?domain=${encodeURIComponent(domain)}`);
       setResult(res.data);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Could not fetch data for this domain. Please check the spelling and try again.');
+      const serverError = err.response?.data;
+      setError(serverError?.details ? `${serverError.error}: ${serverError.details}` : (serverError?.error || 'Could not fetch data for this domain. Please check the spelling and try again.'));
     } finally {
       setLoading(false);
     }
@@ -317,7 +318,14 @@ const Home = () => {
               <div className="my-12 p-8 bg-slate-900 rounded-3xl text-white">
                 <h3 className="text-2xl font-bold mb-4">The Importance of Hosting for SEO</h3>
                 <p className="text-slate-300 mb-6">Google has confirmed that page speed is a ranking factor. Your choice of hosting provider directly impacts your TTFB (Time to First Byte). High-quality hosts like SiteGround or WP Engine offer optimized server environments that can significantly boost your rankings.</p>
-                <button className="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold transition-all">Read Our Hosting Reviews</button>
+                <a 
+                  href="https://webseotrends.com/deals/black-friday-web-hosting-deals/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-block bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold transition-all"
+                >
+                  Claim Best Hosting Deal
+                </a>
               </div>
               <h3 className="text-2xl font-bold text-slate-900 mt-12 mb-6">Find Hosting Provider of Website: Step-by-Step</h3>
               <ol className="space-y-4">
@@ -345,8 +353,22 @@ const Home = () => {
                 <h3 className="text-xl font-bold text-indigo-900 mb-4">Ready to find the best hosting?</h3>
                 <p className="text-indigo-800 mb-6">Check out our comprehensive comparison of the top 10 hosting providers for 2026. We've tested them for speed, uptime, and support.</p>
                 <div className="flex flex-wrap gap-4">
-                  <button className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all">Best WordPress Hosting</button>
-                  <button className="bg-white text-indigo-600 border border-indigo-200 px-6 py-3 rounded-xl font-bold hover:bg-indigo-50 transition-all">Cloud Hosting Reviews</button>
+                  <a 
+                    href="https://webseotrends.com/deals/black-friday-web-hosting-deals/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all"
+                  >
+                    Claim Hosting Deal
+                  </a>
+                  <a 
+                    href="https://webseotrends.com/best-web-hosting/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="bg-white text-indigo-600 border border-indigo-200 px-6 py-3 rounded-xl font-bold hover:bg-indigo-50 transition-all"
+                  >
+                    Read Reviews
+                  </a>
                 </div>
               </div>
             </article>
